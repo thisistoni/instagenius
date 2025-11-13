@@ -1,0 +1,5 @@
+{
+  "name": "AI Instagram Image Generator",
+  "description": "Upload a photo of yourself, provide a prompt, and let AI generate a new, Instagram-worthy image for you. This app uses Gemini to reimagine your photos.",
+  "requestFramePermissions": []
+}
