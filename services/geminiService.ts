@@ -1,5 +1,4 @@
-
-import { GoogleGenAI, Modality } from '@google/genai';
+import { GoogleGenAI, Modality, Type } from '@google/genai';
 
 if (!process.env.API_KEY) {
   // In a real app, you'd want to handle this more gracefully.
@@ -48,5 +47,78 @@ export const generateImage = async (base64ImageData: string, mimeType: string, p
        throw new Error('The API key is invalid. Please check your configuration.');
     }
     throw new Error('Failed to generate image. The model may have refused the request.');
+  }
+};
+
+export const enhancePrompt = async (prompt: string): Promise<string> => {
+  if (!prompt.trim()) {
+    return prompt;
+  }
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Enhance the following user prompt for an AI image generator to make it more descriptive, vivid, and detailed. Add specifics about artistic style, lighting, and composition suitable for generating a high-quality image. Return ONLY the enhanced prompt text, without any introductory phrases like "Here is the enhanced prompt:". User prompt: "${prompt}"`,
+    });
+
+    const enhancedText = response.text.trim();
+    // A simple check to remove quotes if the model wraps the response in them
+    if (enhancedText.startsWith('"') && enhancedText.endsWith('"')) {
+      return enhancedText.substring(1, enhancedText.length - 1);
+    }
+    return enhancedText;
+  } catch (error) {
+    console.error('Error enhancing prompt:', error);
+    // Return original prompt on error so user doesn't lose their input
+    return prompt;
+  }
+};
+
+export const generatePromptSuggestions = async (base64ImageData: string, mimeType: string): Promise<string[]> => {
+  try {
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: {
+            parts: [
+                {
+                    inlineData: {
+                        data: base64ImageData,
+                        mimeType: mimeType,
+                    },
+                },
+                {
+                    text: 'Analyze the person and the style of this image. Suggest 3 distinct, creative, and concise prompts to reimagine this person. The prompts should be suitable for an AI image generator. Focus on transforming the subject into a new theme or style.',
+                },
+            ],
+        },
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    suggestions: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.STRING,
+                            description: "A creative prompt suggestion."
+                        }
+                    }
+                },
+                required: ['suggestions']
+            },
+        },
+    });
+
+    const jsonString = response.text;
+    const result = JSON.parse(jsonString);
+
+    if (result.suggestions && Array.isArray(result.suggestions) && result.suggestions.length > 0) {
+        return result.suggestions.slice(0, 3); // Ensure only 3 are returned
+    }
+
+    throw new Error('Could not parse prompt suggestions from API response.');
+  } catch (error) {
+    console.error('Error generating prompt suggestions:', error);
+    // Don't throw an error up to the UI, just return empty array so the app doesn't break
+    return [];
   }
 };

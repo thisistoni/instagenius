@@ -1,20 +1,40 @@
-
 import React from 'react';
+import { DownloadIcon } from './icons/DownloadIcon';
 
 interface ImageCardProps {
   imageUrl: string;
 }
 
 export const ImageCard: React.FC<ImageCardProps> = ({ imageUrl }) => {
+
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = 'instagenius-creation.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+
   return (
     <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden">
-      <div className="p-4 flex items-center gap-3 border-b border-gray-700">
-        <img
-          src="https://picsum.photos/seed/ai-user/40/40"
-          alt="User avatar"
-          className="w-10 h-10 rounded-full"
-        />
-        <div className="font-bold text-white">YourAIVersion</div>
+      <div className="p-4 flex items-center justify-between border-b border-gray-700">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://picsum.photos/seed/ai-user/40/40"
+            alt="User avatar"
+            className="w-10 h-10 rounded-full"
+          />
+          <div className="font-bold text-white">InstaGenius</div>
+        </div>
+        <button 
+          onClick={handleDownload} 
+          className="p-2 rounded-full hover:bg-gray-700 transition-colors"
+          aria-label="Download image"
+        >
+          <DownloadIcon className="w-6 h-6 text-gray-300" />
+        </button>
       </div>
 
       <img src={imageUrl} alt="Generated" className="w-full h-auto object-cover" />
@@ -26,7 +46,7 @@ export const ImageCard: React.FC<ImageCardProps> = ({ imageUrl }) => {
           <ShareIcon />
         </div>
         <p className="text-gray-400 text-sm mt-3">
-          <span className="font-bold text-white">YourAIVersion</span> Your awesome new AI-generated profile picture! ✨
+          <span className="font-bold text-white">InstaGenius</span> Your awesome new AI-generated instagram post! ✨
         </p>
       </div>
     </div>
